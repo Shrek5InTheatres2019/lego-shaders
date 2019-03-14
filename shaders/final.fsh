@@ -5,12 +5,17 @@
 #define MotionBlur //Motion blur, blurs things in motion
 #define DepthOfField //Depth of field, things not where you're looking go out of focus
 
+const bool gaux1Clear = false;
+
 const float PI = 3.14159265;
 
 varying vec4 texcoord;
 uniform sampler2D gcolor;
 uniform sampler2D gdepthtex;
 uniform float centerDepthSmooth;
+uniform vec3 cameraPosition;
+uniform vec3 previousCameraPosition;
+uniform sampler2D gaux4;
 float bokehBias = 0.8;
 float bokehFringe = 0.7;
 float highlightThreshold = 0.7;
@@ -46,6 +51,15 @@ vec3 depthOfField(in vec3 color, in vec2 coord){
 	}
 
 	return col / (depthSamples * depthRings);
+}
+
+vec3 motionBlur(in vec3 color){
+	vec2 cameraMovement = cameraPosition.st - previousCameraPosition.st;
+	vec3 prevFrame = texture2D(gaux4, texcoord.st + cameraMovement).rgb;
+	
+	prevFrame *= 0.75;
+	color += prevFrame;
+	return color;
 }
 
 vec3 uncharted2Tonemap(const vec3 x) {
@@ -85,6 +99,8 @@ void main() {
 	#ifdef DepthOfField
 		color = depthOfField(color, texcoord.st);
 	#endif
+	color = motionBlur(color);
 	//color = tonemapUncharted2(color);
 	gl_FragData[0] = vec4(color, 1.0);
+	gl_FragData[7] = vec4(color, 1.0);
 }
