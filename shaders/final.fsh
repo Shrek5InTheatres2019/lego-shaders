@@ -22,6 +22,8 @@ float highlightThreshold = 0.7;
 float highlightGain = 0.8;
 uniform float viewWidth;
 uniform float viewHeight;
+uniform mat4 gbufferProjectionInverse;
+uniform mat4 gbufferPreviousProjection;
 
 const float depthSamples = 5.0;
 const float depthRings = 7.0;
@@ -45,7 +47,7 @@ vec3 depthOfField(in vec3 color, in vec2 coord){
 	vec3 col = vec3(0);
 	for(int i = 0; i < depthRings; i++){
 		for(int j = 0; j < depthSamples; j++){
-			float offset = ((clamp(rand(coord), 0.0, 1.0) * CoC) * 0.01);
+			float offset = ((clamp(rand(coord), 0.0, 1.0) * CoC) );
 			col += texture2D(gcolor, coord + offset).rgb;
 		}
 	}
@@ -53,13 +55,23 @@ vec3 depthOfField(in vec3 color, in vec2 coord){
 	return col / (depthSamples * depthRings);
 }
 
-vec3 motionBlur(in vec3 color){
-	vec2 cameraMovement = cameraPosition.st - previousCameraPosition.st;
-	vec3 prevFrame = texture2D(gaux4, texcoord.st + cameraMovement).rgb;
-	
-	prevFrame *= 0.75;
-	color += prevFrame;
-	return color;
+vec3 motionBlur(in vec3 color,in vec2 coord){
+   float zOverW = texture2D(gdepthtex, coord).r;
+   vec4 H = vec4(coord.s * 2 - 1, (1 - coord.t) * 2 - 1,
+zOverW, 1);
+   vec4 D = H * gbufferProjectionInverse;
+   vec4 worldPos = D / D.w;
+   vec4 currentPos = H;
+   vec4 previousPos = worldPos * gbufferPreviousProjection;
+	 previousPos /= previousPos.w;
+   vec2 velocity = ((currentPos - previousPos)/2.f).st;
+coord += velocity;
+for(int i = 1; i < 4; ++i, coord += velocity)
+{
+   vec4 currentColor = texture2D(gcolor, coord);
+   color.rgb += currentColor.rgb;
+}
+    return color / 4;
 }
 
 vec3 uncharted2Tonemap(const vec3 x) {
@@ -91,16 +103,15 @@ vec3 tonemapUncharted2(in vec3 color) {
 }
 
 void main() {
-	vec3 color = texture2D(gcolor, texcoord.st).rgb;
-	color *= BRIGHTNESS;
+	vec4 color = texture2D(gcolor, texcoord.st);
 	#ifdef Vignette
-		color = doVignette(color);
+		color.rgb = doVignette(color.rgb);
 	#endif
 	#ifdef DepthOfField
-		color = depthOfField(color, texcoord.st);
+		color.rgb = depthOfField(color.rgb, texcoord.st);
 	#endif
-	color = motionBlur(color);
+	//color.rgb = motionBlur(color.rgb, texcoord.st);
 	//color = tonemapUncharted2(color);
-	gl_FragData[0] = vec4(color, 1.0);
-	gl_FragData[7] = vec4(color, 1.0);
+	gl_FragData[0] = vec4(color.rgb, 1.0);
+	gl_FragData[7] = vec4(color.rgb, 1.0);
 }
