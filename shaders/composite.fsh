@@ -87,7 +87,6 @@ vec3 getShadowColor(in vec2 coord){
       offset = rotationMatrix * offset;
       float shadowMapSample = texture2D(shadowtex1, shadowCoord.st + offset).r;
       float visibility = step(shadowCoord.z - shadowMapSample, 0.003);
-
       vec4 colorSample = texture2D(shadowcolor0, shadowCoord.st + offset);
 
         shadowColor += mix(vec3(1.0), colorSample.rgb, colorSample.a)*visibility;

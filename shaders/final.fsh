@@ -2,8 +2,7 @@
 
 #define BRIGHTNESS 1.0 //make things brighter, or darker, if you're into that [0.5 0.75 1.0 1.25 1.5 1.75 2.0]
 #define Vignette //Vignette, makes the outsides of the screen darker, and the inside normal coloured
-#define MotionBlur //Motion blur, blurs things in motion\
-
+#define DOF //Depth of field, makes things that should be out of focus out of focus
 
 
 const int RGBA16                = 1;
@@ -78,6 +77,13 @@ vec3 doHDR(in vec3 color){
 	return hdrImage;
 }
 
+vec3 Desaturate(vec3 color, float Desaturation)
+{
+	vec3 grayXfer = vec3(0.3, 0.59, 0.11);
+	vec3 gray = vec3(dot(grayXfer, color));
+	return mix(color, gray, Desaturation);
+}
+
 #include "/lib/DepthOfField.glsl"
 
  void main() {
@@ -86,7 +92,10 @@ vec3 doHDR(in vec3 color){
 	#ifdef Vignette
 		color = doVignette(color);
 	#endif
-	color = depthOfField(color);
+	#ifdef DOF
+		color = depthOfField(color);
+	#endif
+	color = Desaturate(color, 0.2);
 	color *= BRIGHTNESS;
 	gl_FragData[0] = vec4(color, 1.0);
 }

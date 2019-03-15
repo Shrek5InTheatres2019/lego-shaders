@@ -76,7 +76,9 @@ vec3 depthOfField(vec3 color){
 	float focalLength = imageDistance * centerDepthSmooth;
 	float objectDistance = getDepth(texcoord.st);
 	float coc = abs(aperture * ((focalLength * (centerDepthSmooth - objectDistance)) / (objectDistance - (centerDepthSmooth - focalLength))));
+	coc = clamp(coc, 0.03, 20.0);
 	coc = coc/sqrt(0.1+coc*coc);
+
 	
 	if (coc*0.015 > 1.0/max(viewWidth,viewHeight) && hand < 0.5){
 		for (int i = 0; i < 60; ++i) {
