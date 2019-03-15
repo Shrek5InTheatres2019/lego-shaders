@@ -32,11 +32,14 @@ const float depthRings = 20.0;
 float getDepth(in vec2 coord){
   return texture2D(gdepthtex, coord).r;
 }
+float SCurve(float x){
+	x = x * 2.0 - 1.0;
+		return -x * abs(x) * 0.5 + x + 0.5;
+}
 
 float rand(vec2 co){
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
 }
-
 vec3 depthOfField(in vec4 color, in vec2 coord){
 	float aperture = 7;
 	float imageDistance = 1.0;
@@ -46,25 +49,30 @@ vec3 depthOfField(in vec4 color, in vec2 coord){
 	CoC = clamp(CoC, 0.0, 20.0);
 	vec3 col = vec3(0);
 	vec4 sum = vec4(0.0);
+	
+	float blur = CoC*0.02;
 
 	vec2 tc = coord;
-	
-	float blur = CoC*0.02; 
-  
+
 	float hstep = 1.0;
 	float vstep = 0.0;
-    
-	sum += texture2D(gcolor, vec2(tc.x - 4.0*blur*hstep, tc.y - 4.0*blur*vstep)) * 0.0162162162;
-	sum += texture2D(gcolor, vec2(tc.x - 3.0*blur*hstep, tc.y - 3.0*blur*vstep)) * 0.0540540541;
-	sum += texture2D(gcolor, vec2(tc.x - 2.0*blur*hstep, tc.y - 2.0*blur*vstep)) * 0.1216216216;
-	sum += texture2D(gcolor, vec2(tc.x - 1.0*blur*hstep, tc.y - 1.0*blur*vstep)) * 0.1945945946;
 	
-	sum += texture2D(gcolor, vec2(tc.x, tc.y)) * 0.2270270270;
+	float minClamp = 0.15;
+	float maxClamp = 1.0;
+
+	sum += clamp(texture2D(gcolor, vec2(tc.x - 4.0*blur*hstep, tc.y - 4.0*blur*vstep)) * 0.0162162162, minClamp, maxClamp);
+	sum += clamp(texture2D(gcolor, vec2(tc.x - 3.0*blur*hstep, tc.y - 3.0*blur*vstep)) * 0.0540540541, minClamp, maxClamp);
+	sum += clamp(texture2D(gcolor, vec2(tc.x - 2.0*blur*hstep, tc.y - 2.0*blur*vstep)) * 0.1216216216, minClamp, maxClamp);
+	sum += clamp(texture2D(gcolor, vec2(tc.x - 1.0*blur*hstep, tc.y - 1.0*blur*vstep)) * 0.1945945946, minClamp, maxClamp);
 	
-	sum += texture2D(gcolor, vec2(tc.x + 1.0*blur*hstep, tc.y + 1.0*blur*vstep)) * 0.1945945946;
-	sum += texture2D(gcolor, vec2(tc.x + 2.0*blur*hstep, tc.y + 2.0*blur*vstep)) * 0.1216216216;
-	sum += texture2D(gcolor, vec2(tc.x + 3.0*blur*hstep, tc.y + 3.0*blur*vstep)) * 0.0540540541;
-	sum += texture2D(gcolor, vec2(tc.x + 4.0*blur*hstep, tc.y + 4.0*blur*vstep)) * 0.0162162162;
+	sum += clamp(texture2D(gcolor, vec2(tc.x, tc.y)) * 0.2270270270, minClamp, maxClamp);
+	
+	sum += clamp(texture2D(gcolor, vec2(tc.x + 1.0*blur*hstep, tc.y + 1.0*blur*vstep)) * 0.1945945946, minClamp, maxClamp);
+	sum += clamp(texture2D(gcolor, vec2(tc.x + 2.0*blur*hstep, tc.y + 2.0*blur*vstep)) * 0.1216216216, minClamp, maxClamp);
+	sum += clamp(texture2D(gcolor, vec2(tc.x + 3.0*blur*hstep, tc.y + 3.0*blur*vstep)) * 0.0540540541, minClamp, maxClamp);
+	sum += clamp(texture2D(gcolor, vec2(tc.x + 4.0*blur*hstep, tc.y + 4.0*blur*vstep)) * 0.0162162162, minClamp, maxClamp);
+	
+	
 
 	color *= vec4(sum.rgb, 1.0);
 
@@ -73,17 +81,19 @@ vec3 depthOfField(in vec4 color, in vec2 coord){
 	hstep = 0.0;
 	vstep = 1.0;
 
-	sum += texture2D(gcolor, vec2(tc.x - 4.0*blur*hstep, tc.y - 4.0*blur*vstep)) * 0.0162162162;
-	sum += texture2D(gcolor, vec2(tc.x - 3.0*blur*hstep, tc.y - 3.0*blur*vstep)) * 0.0540540541;
-	sum += texture2D(gcolor, vec2(tc.x - 2.0*blur*hstep, tc.y - 2.0*blur*vstep)) * 0.1216216216;
-	sum += texture2D(gcolor, vec2(tc.x - 1.0*blur*hstep, tc.y - 1.0*blur*vstep)) * 0.1945945946;
 	
-	sum += texture2D(gcolor, vec2(tc.x, tc.y)) * 0.2270270270;
+	sum += clamp(texture2D(gcolor, vec2(tc.x - 4.0*blur*hstep, tc.y - 4.0*blur*vstep)) * 0.0162162162, minClamp, maxClamp);
+	sum += clamp(texture2D(gcolor, vec2(tc.x - 3.0*blur*hstep, tc.y - 3.0*blur*vstep)) * 0.0540540541, minClamp, maxClamp);
+	sum += clamp(texture2D(gcolor, vec2(tc.x - 2.0*blur*hstep, tc.y - 2.0*blur*vstep)) * 0.1216216216, minClamp, maxClamp);
+	sum += clamp(texture2D(gcolor, vec2(tc.x - 1.0*blur*hstep, tc.y - 1.0*blur*vstep)) * 0.1945945946, minClamp, maxClamp);
 	
-	sum += texture2D(gcolor, vec2(tc.x + 1.0*blur*hstep, tc.y + 1.0*blur*vstep)) * 0.1945945946;
-	sum += texture2D(gcolor, vec2(tc.x + 2.0*blur*hstep, tc.y + 2.0*blur*vstep)) * 0.1216216216;
-	sum += texture2D(gcolor, vec2(tc.x + 3.0*blur*hstep, tc.y + 3.0*blur*vstep)) * 0.0540540541;
-	sum += texture2D(gcolor, vec2(tc.x + 4.0*blur*hstep, tc.y + 4.0*blur*vstep)) * 0.0162162162;
+	sum += clamp(texture2D(gcolor, vec2(tc.x, tc.y)) * 0.2270270270, minClamp, maxClamp);
+	
+	sum += clamp(texture2D(gcolor, vec2(tc.x + 1.0*blur*hstep, tc.y + 1.0*blur*vstep)) * 0.1945945946, minClamp, maxClamp);
+	sum += clamp(texture2D(gcolor, vec2(tc.x + 2.0*blur*hstep, tc.y + 2.0*blur*vstep)) * 0.1216216216, minClamp, maxClamp);
+	sum += clamp(texture2D(gcolor, vec2(tc.x + 3.0*blur*hstep, tc.y + 3.0*blur*vstep)) * 0.0540540541, minClamp, maxClamp);
+	sum += clamp(texture2D(gcolor, vec2(tc.x + 4.0*blur*hstep, tc.y + 4.0*blur*vstep)) * 0.0162162162, minClamp, maxClamp);
+	
 
 	color *= vec4(sum.rgb, 1.0);
 
@@ -111,6 +121,30 @@ vec3 doVignette(in vec3 color) {
 
 }
 
+void contrastAdjust( inout vec3 color, in float c) {
+    float t = 0.5 - c * 0.5; 
+    color.rgb = color.rgb * c + t;
+}
+
+mat4 saturationMatrix( float saturation ) {
+    vec3 luminance = vec3( 0.3086, 0.6094, 0.0820 );
+    float oneMinusSat = 1.0 - saturation;
+    vec3 red = vec3( luminance.x * oneMinusSat );
+    red.r += saturation;
+    
+    vec3 green = vec3( luminance.y * oneMinusSat );
+    green.g += saturation;
+    
+    vec3 blue = vec3( luminance.z * oneMinusSat );
+    blue.b += saturation;
+    
+    return mat4( 
+        red,     0,
+        green,   0,
+        blue,    0,
+        0, 0, 0, 1 );
+}
+
 vec3 tonemapUncharted2(in vec3 color) {
 	const float W = 11.2;
 	const float exposureBias = 2.0;
@@ -127,8 +161,10 @@ void main() {
 	#ifdef DepthOfField
 		color.rgb = depthOfField(color, texcoord.st);
 	#endif
-	//color = tonemapUncharted2(color);
+	/*color.rgb = tonemapUncharted2(color.rgb);
 	color *= BRIGHTNESS;
+	contrastAdjust(color.rgb, 0.8);
+	color = saturationMatrix(0.8) * color;*/
 	gl_FragData[0] = color;
 	gl_FragData[7] = vec4(color.rgb, 1.0);
 }
