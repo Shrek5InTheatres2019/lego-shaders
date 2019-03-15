@@ -22,11 +22,12 @@ float highlightThreshold = 0.7;
 float highlightGain = 0.8;
 uniform float viewWidth;
 uniform float viewHeight;
-uniform mat4 gbufferProjectionInverse;
-uniform mat4 gbufferPreviousProjection;
+uniform mat4 gbufferModelViewInverse;
+uniform mat4 gbufferPreviousModelView;
+uniform float resolution;
 
-const float depthSamples = 5.0;
-const float depthRings = 7.0;
+const float depthSamples = 20.0;
+const float depthRings = 20.0;
 
 float getDepth(in vec2 coord){
   return texture2D(gdepthtex, coord).r;
@@ -36,8 +37,7 @@ float rand(vec2 co){
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
 }
 
-vec3 depthOfField(in vec3 color, in vec2 coord){
-	float blur = 0.0;
+vec3 depthOfField(in vec4 color, in vec2 coord){
 	float aperture = 7;
 	float imageDistance = 1.0;
 	float focalLength = imageDistance * centerDepthSmooth;
@@ -45,34 +45,51 @@ vec3 depthOfField(in vec3 color, in vec2 coord){
 	float CoC = abs(aperture * ((focalLength * (centerDepthSmooth - objectDistance)) / (objectDistance - (centerDepthSmooth - focalLength))));
 	CoC = clamp(CoC, 0.0, 20.0);
 	vec3 col = vec3(0);
-	for(int i = 0; i < depthRings; i++){
-		for(int j = 0; j < depthSamples; j++){
-			float offset = ((clamp(rand(coord), 0.0, 1.0) * CoC) );
-			col += texture2D(gcolor, coord + offset).rgb;
-		}
-	}
+	vec4 sum = vec4(0.0);
 
-	return col / (depthSamples * depthRings);
+	vec2 tc = coord;
+	
+	float blur = CoC*0.02; 
+  
+	float hstep = 1.0;
+	float vstep = 0.0;
+    
+	sum += texture2D(gcolor, vec2(tc.x - 4.0*blur*hstep, tc.y - 4.0*blur*vstep)) * 0.0162162162;
+	sum += texture2D(gcolor, vec2(tc.x - 3.0*blur*hstep, tc.y - 3.0*blur*vstep)) * 0.0540540541;
+	sum += texture2D(gcolor, vec2(tc.x - 2.0*blur*hstep, tc.y - 2.0*blur*vstep)) * 0.1216216216;
+	sum += texture2D(gcolor, vec2(tc.x - 1.0*blur*hstep, tc.y - 1.0*blur*vstep)) * 0.1945945946;
+	
+	sum += texture2D(gcolor, vec2(tc.x, tc.y)) * 0.2270270270;
+	
+	sum += texture2D(gcolor, vec2(tc.x + 1.0*blur*hstep, tc.y + 1.0*blur*vstep)) * 0.1945945946;
+	sum += texture2D(gcolor, vec2(tc.x + 2.0*blur*hstep, tc.y + 2.0*blur*vstep)) * 0.1216216216;
+	sum += texture2D(gcolor, vec2(tc.x + 3.0*blur*hstep, tc.y + 3.0*blur*vstep)) * 0.0540540541;
+	sum += texture2D(gcolor, vec2(tc.x + 4.0*blur*hstep, tc.y + 4.0*blur*vstep)) * 0.0162162162;
+
+	color *= vec4(sum.rgb, 1.0);
+
+	sum = vec4(0.0);
+
+	hstep = 0.0;
+	vstep = 1.0;
+
+	sum += texture2D(gcolor, vec2(tc.x - 4.0*blur*hstep, tc.y - 4.0*blur*vstep)) * 0.0162162162;
+	sum += texture2D(gcolor, vec2(tc.x - 3.0*blur*hstep, tc.y - 3.0*blur*vstep)) * 0.0540540541;
+	sum += texture2D(gcolor, vec2(tc.x - 2.0*blur*hstep, tc.y - 2.0*blur*vstep)) * 0.1216216216;
+	sum += texture2D(gcolor, vec2(tc.x - 1.0*blur*hstep, tc.y - 1.0*blur*vstep)) * 0.1945945946;
+	
+	sum += texture2D(gcolor, vec2(tc.x, tc.y)) * 0.2270270270;
+	
+	sum += texture2D(gcolor, vec2(tc.x + 1.0*blur*hstep, tc.y + 1.0*blur*vstep)) * 0.1945945946;
+	sum += texture2D(gcolor, vec2(tc.x + 2.0*blur*hstep, tc.y + 2.0*blur*vstep)) * 0.1216216216;
+	sum += texture2D(gcolor, vec2(tc.x + 3.0*blur*hstep, tc.y + 3.0*blur*vstep)) * 0.0540540541;
+	sum += texture2D(gcolor, vec2(tc.x + 4.0*blur*hstep, tc.y + 4.0*blur*vstep)) * 0.0162162162;
+
+	color *= vec4(sum.rgb, 1.0);
+
+	return color.rgb;
 }
 
-vec3 motionBlur(in vec3 color,in vec2 coord){
-   float zOverW = texture2D(gdepthtex, coord).r;
-   vec4 H = vec4(coord.s * 2 - 1, (1 - coord.t) * 2 - 1,
-zOverW, 1);
-   vec4 D = H * gbufferProjectionInverse;
-   vec4 worldPos = D / D.w;
-   vec4 currentPos = H;
-   vec4 previousPos = worldPos * gbufferPreviousProjection;
-	 previousPos /= previousPos.w;
-   vec2 velocity = ((currentPos - previousPos)/2.f).st;
-coord += velocity;
-for(int i = 1; i < 4; ++i, coord += velocity)
-{
-   vec4 currentColor = texture2D(gcolor, coord);
-   color.rgb += currentColor.rgb;
-}
-    return color / 4;
-}
 
 vec3 uncharted2Tonemap(const vec3 x) {
 	const float A = 0.15;
@@ -108,10 +125,10 @@ void main() {
 		color.rgb = doVignette(color.rgb);
 	#endif
 	#ifdef DepthOfField
-		color.rgb = depthOfField(color.rgb, texcoord.st);
+		color.rgb = depthOfField(color, texcoord.st);
 	#endif
-	//color.rgb = motionBlur(color.rgb, texcoord.st);
 	//color = tonemapUncharted2(color);
-	gl_FragData[0] = vec4(color.rgb, 1.0);
+	color *= BRIGHTNESS;
+	gl_FragData[0] = color;
 	gl_FragData[7] = vec4(color.rgb, 1.0);
 }
