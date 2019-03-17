@@ -17,6 +17,7 @@ uniform sampler2D shadowtex0;
 uniform sampler2D shadowtex1;
 uniform sampler2D noisetex;
 uniform sampler2D shadowcolor0;
+uniform sampler2D lightmap;
 
 uniform vec3 cameraPosition;
 uniform mat4 gbufferModelViewInverse;
@@ -88,8 +89,8 @@ vec3 getShadowColor(in vec2 coord){
       float shadowMapSample = texture2D(shadowtex1, shadowCoord.st + offset).r;
       float visibility = step(shadowCoord.z - shadowMapSample, 0.003);
       vec4 colorSample = texture2D(shadowcolor0, shadowCoord.st + offset);
-
-        shadowColor += mix(vec3(1.0), colorSample.rgb, colorSample.a)*visibility;
+      shadowColor += mix(vec3(1.0), colorSample.rgb, colorSample.a)*visibility;
+      
     }
   }
   return shadowColor * 0.111;
@@ -98,9 +99,10 @@ vec3 getShadowColor(in vec2 coord){
 vec3 calculateLitSurface(in vec3 color){
   vec3 sunLightAmount = getShadowColor(texcoord.st);
   vec3 ambientLighting = vec3(0.3);
-
+  
   return color * (sunLightAmount + ambientLighting);
 }
+
 
 void main(){
   vec3 finalComposite = texture2D(gcolor, texcoord.st).rgb;
