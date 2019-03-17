@@ -30,9 +30,9 @@ void main(){
     vec3 worldPos = (gbufferModelViewInverse * (gl_ModelViewMatrix * gl_Vertex)).xyz + cameraPosition;
     if(isTop){
         if(mc_Entity.x == 31.0){
-            float magnitude = sin(worldTime * PI / 204) * 0.3;
-            worldPos.x += sin((worldTime * (worldPos.x / 100)) * PI / 154) * magnitude;
-            worldPos.z += sin((worldTime * (worldPos.y / 100)) * PI / 92) * magnitude;
+            float magnitude = sin(worldTime * PI / 172) * 0.2;
+            worldPos.x += sin((worldTime * (worldPos.x / 100)) * PI / 86) * magnitude;
+            worldPos.z += sin((worldTime * (worldPos.y / 100)) * PI / 72) * magnitude;
         }
     }
     gl_Position = gl_ProjectionMatrix * (gbufferModelView * vec4(worldPos - cameraPosition, 1.0));
