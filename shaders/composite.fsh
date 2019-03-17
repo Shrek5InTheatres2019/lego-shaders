@@ -22,8 +22,14 @@ uniform sampler2D lightmap;
 uniform vec3 cameraPosition;
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferProjectionInverse;
+uniform mat4 gbufferProjection;
+uniform mat4 gbufferModelView;
 uniform float viewHeight;
 uniform float viewWidth;
+
+uniform vec3 sunPosition;
+
+uniform int worldTime;
 
 uniform mat4 shadowModelView;
 uniform mat4 shadowProjection;
@@ -102,9 +108,14 @@ vec3 getShadowColor(in vec2 coord){
 vec3 calculateLitSurface(in vec3 color){
   vec3 sunLightAmount = getShadowColor(texcoord.st);
   vec3 ambientLighting = vec3(0.3);
-  
-  return color * (sunLightAmount + ambientLighting);
+  float night = 1.0;
+  if(worldTime >= 13000 && worldTime < 1000){
+    night = 0.02;
+  }
+
+  return color * (sunLightAmount + ambientLighting) * night;
 }
+
 
 
 void main(){
