@@ -12,6 +12,11 @@ uniform sampler2D noisetex;
 uniform mat4 gbufferModelView;
 attribute vec2 mc_midTexCoord;  
 attribute vec3 mc_Entity;
+const float PI = 3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808;
+
+float rand(vec2 co){
+    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
 
 void main(){
     texcoord = gl_MultiTexCoord0;
@@ -22,11 +27,12 @@ void main(){
     if(texcoord.y < mc_midTexCoord.y){ 
         isTop = true;
     }
-    float wind_scale = 0.15;
     vec3 worldPos = (gbufferModelViewInverse * (gl_ModelViewMatrix * gl_Vertex)).xyz + cameraPosition;
     if(isTop){
         if(mc_Entity.x == 31){
-            worldPos.x += wind_scale * ((sin(worldTime*0.07) + sin((worldTime + sin(texcoord.s))*0.07)  - 0.5)) + texture2D(noisetex, worldPos.xy).r;
+            float magnitude = sin(PI / 58.0) * 0.3;
+            worldPos.x += sin(PI / 84) * magnitude;
+            worldPos.y += sin(PI / 99) * magnitude;
         }
     }
     gl_Position = gl_ProjectionMatrix * (gbufferModelView * vec4(worldPos - cameraPosition, 1.0));
