@@ -78,6 +78,9 @@ mat2 getRotationMatrix(in vec2 coord){
 }
 
 vec3 getShadowColor(in vec2 coord){
+  if(getDepth(coord) == 1.0){
+    return vec3(1.0);
+  }
   vec3 shadowCoord = getShadowSpacePosition(coord);
 
   vec3 shadowColor = vec3(0.0);
