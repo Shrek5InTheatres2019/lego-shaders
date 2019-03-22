@@ -7,6 +7,8 @@ const int noiseTextureResolution= 64;
 
 const float sunPathRotation    = 25.0;
 
+float SHADOW_BIAS = 0.003;
+
 uniform sampler2D gcolor;
 uniform sampler2D gnormal;
 uniform sampler2D gdepth;
@@ -34,12 +36,20 @@ uniform int worldTime;
 uniform mat4 shadowModelView;
 uniform mat4 shadowProjection;
 
+varying vec3 lightVector;
+
 varying vec4 texcoord;
+
+float offsetx;
+float offsety;
 
 /* DRAWBUFFERS:012 */
 
 float getDepth(in vec2 coord){
   return texture2D(gdepthtex, coord).r;
+}
+vec3 getNormal(in vec2 coord){
+  return texture2D(gnormal, coord).rgb * 2.0 - 1.0;
 }
 
 vec4 getCameraSpacePosition(in vec2 coord) {
@@ -84,19 +94,32 @@ mat2 getRotationMatrix(in vec2 coord){
 }
 
 vec3 getShadowColor(in vec2 coord){
-  if(getDepth(coord) == 1.0){
+  float depth = getDepth(coord);
+  vec3 normal = getNormal(coord);
+  if(depth == 1.0){
     return vec3(1.0);
+  }
+  float biasThing = dot(normal, lightVector);
+  biasThing = max(0.0, biasThing);
+  if(biasThing >= 0.0 && biasThing <= 0.25){
+    SHADOW_BIAS = 0.0001;
+  }else if(biasThing >= 0.25 && biasThing <= 0.5){
+    SHADOW_BIAS = 0.0003;
+  }else if(biasThing >= 0.5 && biasThing <= 0.75){
+    SHADOW_BIAS = 0.0005;
+  }else if(biasThing >= 0.75 && biasThing <= 1.0){
+    SHADOW_BIAS = 0.0008;
   }
   vec3 shadowCoord = getShadowSpacePosition(coord);
 
   vec3 shadowColor = vec3(0.0);
   mat2 rotationMatrix = getRotationMatrix(coord);
-  for(int y = -1; y < 2; y++){
-    for(int x = -1; x < 2; x++){
+  for(float y = -1; y < 2; y++){
+    for(float x = -1; x < 2; x++){
       vec2 offset = vec2(x, y) / shadowMapResolution;
       offset = rotationMatrix * offset;
       float shadowMapSample = texture2D(shadowtex1, shadowCoord.st + offset).r;
-      float visibility = step(shadowCoord.z - shadowMapSample, 0.003);
+      float visibility = step(shadowCoord.z - shadowMapSample, SHADOW_BIAS);
       vec4 colorSample = texture2D(shadowcolor0, shadowCoord.st + offset);
       shadowColor += mix(vec3(1.0), colorSample.rgb, colorSample.a)*visibility;
       
@@ -118,13 +141,13 @@ vec3 calculateLitSurface(in vec3 color){
 
 
 
+
 void main(){
   vec3 finalComposite = texture2D(gcolor, texcoord.st).rgb;
   vec3 finalCompositeNormal = texture2D(gnormal, texcoord.st).rgb;
   vec3 finalCompositeDepth = texture2D(gdepth, texcoord.st).rgb;
 
   finalComposite *= calculateLitSurface(finalComposite);
-
   gl_FragData[0] = vec4(finalComposite, 1.0);
   gl_FragData[1] = vec4(finalCompositeNormal, 1.0);
   gl_FragData[2] = vec4(finalCompositeDepth, 1.0);

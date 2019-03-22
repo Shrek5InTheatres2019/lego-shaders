@@ -3,6 +3,7 @@
 varying vec4 texcoord;
 
 varying vec4 blockColor;
+varying vec3 normal;
 
 uniform mat4 gbufferModelViewInverse;
 uniform vec3 cameraPosition;
@@ -36,4 +37,5 @@ void main(){
         }
     }
     gl_Position = gl_ProjectionMatrix * (gbufferModelView * vec4(worldPos - cameraPosition, 1.0));
+    normal = normalize(gl_NormalMatrix * gl_Normal);
 }
