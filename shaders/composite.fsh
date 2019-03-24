@@ -99,17 +99,7 @@ vec3 getShadowColor(in vec2 coord){
   if(depth == 1.0){
     return vec3(1.0);
   }
-  float biasThing = dot(normal, lightVector);
-  biasThing = max(0.0, biasThing);
-  if(biasThing >= 0.0 && biasThing <= 0.25){
-    SHADOW_BIAS = 0.0001;
-  }else if(biasThing >= 0.25 && biasThing <= 0.5){
-    SHADOW_BIAS = 0.0003;
-  }else if(biasThing >= 0.5 && biasThing <= 0.75){
-    SHADOW_BIAS = 0.0005;
-  }else if(biasThing >= 0.75 && biasThing <= 1.0){
-    SHADOW_BIAS = 0.0008;
-  }
+  
   vec3 shadowCoord = getShadowSpacePosition(coord);
 
   vec3 shadowColor = vec3(0.0);
@@ -140,14 +130,13 @@ vec3 calculateLitSurface(in vec3 color){
 }
 
 
-
-
 void main(){
   vec3 finalComposite = texture2D(gcolor, texcoord.st).rgb;
   vec3 finalCompositeNormal = texture2D(gnormal, texcoord.st).rgb;
   vec3 finalCompositeDepth = texture2D(gdepth, texcoord.st).rgb;
 
   finalComposite *= calculateLitSurface(finalComposite);
+  
   gl_FragData[0] = vec4(finalComposite, 1.0);
   gl_FragData[1] = vec4(finalCompositeNormal, 1.0);
   gl_FragData[2] = vec4(finalCompositeDepth, 1.0);

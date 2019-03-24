@@ -34,6 +34,7 @@ void main(){
             float magnitude = sin(worldTime * PI / 172) * 0.2;
             worldPos.x += sin((worldTime * (worldPos.x / 100)) * PI / 86) * magnitude;
             worldPos.z += sin((worldTime * (worldPos.y / 100)) * PI / 72) * magnitude;
+            worldPos.y += sin((worldTime * (worldPos.y / 100)) * PI / 9000) * -magnitude;
         }
     }
     gl_Position = gl_ProjectionMatrix * (gbufferModelView * vec4(worldPos - cameraPosition, 1.0));
