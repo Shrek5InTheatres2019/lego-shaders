@@ -36,8 +36,6 @@ uniform int worldTime;
 uniform mat4 shadowModelView;
 uniform mat4 shadowProjection;
 
-varying vec3 lightVector;
-
 varying vec4 texcoord;
 
 float offsetx;
@@ -131,8 +129,15 @@ vec3 calculateLitSurface(in vec3 color){
 
 #include "/lib/SSR.glsl"
 vec3 calcSSRShadow(in vec3 color, in vec2 coord){
-  vec4 cSpacePos = getWorldSpacePosition(coord);
-  vec4 suCSpacePos = getWorldSpacePosition(sunPosition.xy);
+  float depth = getDepth(coord);
+  vec3 normal = getNormal(coord);
+  if(depth == 1.0){
+    return color;
+  }
+  
+  vec4 cSpacePos = gbufferProjectionInverse * gl_FragCoord;
+  cSpacePos /= cSpacePos.w;
+  vec4 suCSpacePos = vec4(sunPosition, 1.0);
   vec2 hitPixel;
   vec3 hitPoint;
   if(traceScreenSpaceRay1(cSpacePos.xyz, suCSpacePos.xyz, gbufferProjection, shadowtex0, vec2(0.0, 1.0), getDepth(coord), -0.01, 3, 0.2, 100, 1000, hitPixel, hitPoint)){
