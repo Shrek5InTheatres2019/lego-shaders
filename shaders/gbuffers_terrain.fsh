@@ -4,6 +4,7 @@ varying vec4 texcoord;
 varying vec4 blockColor;
 varying vec3 normal;
 uniform sampler2D tex;
+uniform sampler2D lightmap;
 
 void main(){
     vec4 color = texture2D(tex, texcoord.st);

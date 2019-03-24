@@ -99,17 +99,7 @@ vec3 getShadowColor(in vec2 coord){
   if(depth == 1.0){
     return vec3(1.0);
   }
-  float biasThing = dot(normal, lightVector);
-  biasThing = max(0.0, biasThing);
-  if(biasThing >= 0.0 && biasThing <= 0.25){
-    SHADOW_BIAS = 0.0001;
-  }else if(biasThing >= 0.25 && biasThing <= 0.5){
-    SHADOW_BIAS = 0.0003;
-  }else if(biasThing >= 0.5 && biasThing <= 0.75){
-    SHADOW_BIAS = 0.0005;
-  }else if(biasThing >= 0.75 && biasThing <= 1.0){
-    SHADOW_BIAS = 0.0008;
-  }
+  
   vec3 shadowCoord = getShadowSpacePosition(coord);
 
   vec3 shadowColor = vec3(0.0);
@@ -139,15 +129,26 @@ vec3 calculateLitSurface(in vec3 color){
   return color * (sunLightAmount + ambientLighting) * night;
 }
 
-
-
+#include "/lib/SSR.glsl"
+vec3 calcSSRShadow(in vec3 color, in vec2 coord){
+  vec4 cSpacePos = getWorldSpacePosition(coord);
+  vec4 suCSpacePos = getWorldSpacePosition(sunPosition.xy);
+  vec2 hitPixel;
+  vec3 hitPoint;
+  if(traceScreenSpaceRay1(cSpacePos.xyz, suCSpacePos.xyz, gbufferProjection, shadowtex0, vec2(0.0, 1.0), getDepth(coord), -0.01, 3, 0.2, 100, 1000, hitPixel, hitPoint)){
+    return vec3(0.0);
+  }
+  return color;
+}
 
 void main(){
   vec3 finalComposite = texture2D(gcolor, texcoord.st).rgb;
   vec3 finalCompositeNormal = texture2D(gnormal, texcoord.st).rgb;
   vec3 finalCompositeDepth = texture2D(gdepth, texcoord.st).rgb;
 
-  finalComposite *= calculateLitSurface(finalComposite);
+  //finalComposite *= calculateLitSurface(finalComposite);
+  finalComposite = calcSSRShadow(finalComposite, texcoord.st);
+
   gl_FragData[0] = vec4(finalComposite, 1.0);
   gl_FragData[1] = vec4(finalCompositeNormal, 1.0);
   gl_FragData[2] = vec4(finalCompositeDepth, 1.0);

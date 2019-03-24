@@ -113,7 +113,7 @@ bool traceScreenSpaceRay1(
         hitPixel = permute ? P.yx : P;
         // You may need hitPixel.y = csZBufferSize.y - hitPixel.y; here if your vertical axis
         // is different than ours in screen space
-        sceneZMax = texelFetch(csZBuffer, int2(hitPixel), 0);
+        sceneZMax = texture2D(csZBuffer, vec2(hitPixel), 0).r;
     }
      
     // Advance Q based on the number of steps

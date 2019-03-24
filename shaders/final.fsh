@@ -3,7 +3,7 @@
 #define BRIGHTNESS 1.0 //make things brighter, or darker, if you're into that [0.5 0.75 1.0 1.25 1.5 1.75 2.0]
 #define Vignette //Vignette, makes the outsides of the screen darker, and the inside normal coloured
 #define DOF //Depth of field, makes things that should be out of focus out of focus
-
+#define saturationFix // Desaturates the image to make it seem more natural;
 
 const int RGBA16                = 1;
 const int gcolorformat          = RGBA16;
@@ -95,7 +95,9 @@ vec3 Desaturate(vec3 color, float Desaturation)
 	#ifdef DOF
 		color = depthOfField(color);
 	#endif
-	color = Desaturate(color, 0.2);
+	#ifdef saturationFix
+		color = Desaturate(color, 0.2);
+	#endif
 	color *= BRIGHTNESS;
 	gl_FragData[0] = vec4(color, 1.0);
 }
