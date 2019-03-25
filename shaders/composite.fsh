@@ -135,15 +135,15 @@ vec3 calcSSRShadow(in vec3 color, in vec2 coord){
     return color;
   }
   
-  vec4 cSpacePos = gbufferProjectionInverse * gl_FragCoord;
-  cSpacePos /= cSpacePos.w;
+  vec4 cSpacePos = getCameraSpacePosition(gl_FragCoord.xy);
   vec4 suCSpacePos = vec4(sunPosition, 1.0);
+  vec4 dir = cSpacePos - suCSpacePos;
   vec2 hitPixel;
   vec3 hitPoint;
-  if(traceScreenSpaceRay1(cSpacePos.xyz, suCSpacePos.xyz, gbufferProjection, shadowtex0, vec2(0.0, 1.0), getDepth(coord), -0.01, 3, 0.2, 100, 1000, hitPixel, hitPoint)){
-    return vec3(0.0);
+  if(traceScreenSpaceRay1(cSpacePos.xyz, dir.xyz, gbufferProjection, shadowtex0, vec2(0.0, 1.0), getDepth(coord), -0.01, 3, 0.2, 100, 1000, hitPixel, hitPoint)){
+    return  vec3(0.0);
   }
-  return color;
+  return vec3(1.0);
 }
 
 void main(){
