@@ -4,6 +4,7 @@
 #define Vignette //Vignette, makes the outsides of the screen darker, and the inside normal coloured
 #define DOF //Depth of field, makes things that should be out of focus out of focus
 #define saturationFix // Desaturates the image to make it seem more natural;
+#define Reinhardt //uwu
 
 const int RGBA16                = 1;
 const int gcolorformat          = RGBA16;
@@ -60,7 +61,7 @@ const float depthRings = 7.0;
 
 vec3 Reinhard(vec3 texColor)
 {
-   texColor *= 16;  // Hardcoded Exposure Adjustment
+   texColor = texColor * 16;  // Hardcoded Exposure Adjustment
    texColor = texColor/(1+texColor);
    vec3 retColor = pow(texColor,vec3(1/2.2));
    return retColor;
@@ -97,6 +98,9 @@ vec3 Desaturate(vec3 color, float Desaturation)
 	#endif
 	#ifdef saturationFix
 		color = Desaturate(color, 0.2);
+	#endif
+	#ifdef Reinhardt
+		color = Reinhard(color);
 	#endif
 	color *= BRIGHTNESS;
 	gl_FragData[0] = vec4(color, 1.0);
