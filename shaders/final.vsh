@@ -2,9 +2,8 @@
 
 varying vec4 texcoord;
 
-
-void main() {
-	// Here we're just setting up things we'll need in final.fsh
-	gl_Position = ftransform();
-	texcoord = gl_MultiTexCoord0;
+void main(){
+  texcoord = gl_MultiTexCoord0;
+  vec4 position = gl_Vertex;
+  gl_Position = gl_ProjectionMatrix * (gl_ModelViewMatrix * position);
 }
