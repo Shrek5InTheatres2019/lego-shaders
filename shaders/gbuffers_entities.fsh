@@ -2,6 +2,7 @@
 
 varying vec4 texcoord;
 varying vec4 blockColor;
+varying vec4 normal;
 
 uniform sampler2D colortex0;
 

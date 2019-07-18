@@ -65,11 +65,11 @@ const vec2 celshadeoffset[24] = vec2[24](vec2(-2.0,2.0),vec2(-1.0,2.0),vec2(0.0,
 
 vec3 depthOfField(vec3 color){
 	vec3 dof = vec3(0.0);
-	
+
 	float z = texture2D(depthtex1, texcoord.st).r;
 
 	float hand = float(z < 0.56);
-	
+
     float blur = 0.0;
 	float aperture = 7;
 	float imageDistance = 0.9;
@@ -79,10 +79,10 @@ vec3 depthOfField(vec3 color){
 	coc = clamp(coc, 0.03, 20.0);
 	coc = coc/sqrt(0.1+coc*coc);
 
-	
+
 	if (coc*0.015 > 1.0/max(viewWidth,viewHeight) && hand < 0.5){
 		for (int i = 0; i < 60; ++i) {
-			dof += texture2DLod(gcolor, texcoord.xy + hqoffset[i]*coc*0.015*vec2(1.0/aspectRatio,1.0),log2(viewHeight/180.0*aspectRatio/1.77777778)*coc).rgb;
+			dof += texture2DLod(colortex0, texcoord.xy + hqoffset[i]*coc*0.015*vec2(1.0/aspectRatio,1.0),log2(viewHeight/180.0*aspectRatio/1.77777778)*coc).rgb;
 		}
 		dof /= 60.0;
 	}

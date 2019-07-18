@@ -4,7 +4,6 @@
 varying vec4 texcoord;
 varying vec4 blockColor;
 
-
 void main(){
   texcoord = gl_MultiTexCoord0;
   blockColor = gl_Color;
