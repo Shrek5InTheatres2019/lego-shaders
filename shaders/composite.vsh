@@ -4,6 +4,7 @@ varying vec4 texcoord;
 
 varying vec3 N;
 varying vec3 v;
+varying vec4 FragPos;
 
 void main()
 {
