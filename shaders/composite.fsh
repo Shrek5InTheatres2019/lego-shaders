@@ -1,5 +1,7 @@
 #version 120
 
+const float sunPathRotation    = 25.0;
+
 varying vec4 texcoord;
 varying vec3 N;
 varying vec3 v;
@@ -21,6 +23,7 @@ float getEmission(){
 }
 /* DRAWBUFFERS:0 */
 void main(){
+  vec4 alpha = texture2D(colortex0, texcoord.st).rgba;
   vec3 color = texture2D(colortex0, texcoord.st).rgb;
   float emission = getEmission();
   vec3 lightDirection = normalize(shadowLightPosition - v);
@@ -29,5 +32,5 @@ void main(){
   float power = orenNayarDiffuse(lightDirection, eyeDirection, getNormal(), 0.3, 0.7);
   vec3 color1 = (color * (power + ambient));
   vec3 final = mix(color, color1, emission);
-  gl_FragData[0] = vec4(final, 1.0);
+  gl_FragData[0] = vec4(final, alpha.a);
 }

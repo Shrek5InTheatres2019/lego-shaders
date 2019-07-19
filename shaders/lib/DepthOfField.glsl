@@ -70,13 +70,14 @@ vec3 depthOfField(vec3 color){
 
 	float hand = float(z < 0.56);
 
+	float uwu = DOFStrength / 10;
     float blur = 0.0;
 	float aperture = 7;
 	float imageDistance = 0.9;
 	float focalLength = imageDistance * centerDepthSmooth;
 	float objectDistance = getDepth(texcoord.st);
 	float coc = abs(aperture * ((focalLength * (centerDepthSmooth - objectDistance)) / (objectDistance - (centerDepthSmooth - focalLength))));
-	coc = clamp(coc, 0.03, 20.0);
+	coc = clamp(coc * uwu, 0.03, 20.0);
 	coc = coc/sqrt(0.1+coc*coc);
 
 
