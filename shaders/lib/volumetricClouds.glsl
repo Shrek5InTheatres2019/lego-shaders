@@ -53,7 +53,7 @@ float map2( in vec3 p )
 	return clamp( 1.5 - p.y - 2.0 + 1.75*f, 0.0, 1.0 );
 }
 
-vec3 sundir = normalize( vec3(-1.0,0.0,-1.0) );
+vec3 sundir = normalize(lightPosition);
 
 vec4 integrate( in vec4 sum, in float dif, in float den, in vec3 bgcol, in float t )
 {
