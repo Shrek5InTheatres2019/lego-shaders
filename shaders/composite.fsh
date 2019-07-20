@@ -5,6 +5,8 @@ const float sunPathRotation    = 25.0;
 varying vec4 texcoord;
 varying vec3 N;
 varying vec3 v;
+varying vec3 lightPosition;
+
 
 uniform vec3 cameraPosition;
 uniform vec3 shadowLightPosition;
@@ -21,6 +23,11 @@ vec3 getNormal(){
 float getEmission(){
   return texture2D(gdepthtex, texcoord.st).r;
 }
+vec3 colorCode(float r, float g, float b){
+  vec3 back = vec3(r,g,b);
+  back = back / 255;
+  return back;
+}
 /* DRAWBUFFERS:0 */
 void main(){
   vec4 alpha = texture2D(colortex0, texcoord.st).rgba;
@@ -30,7 +37,7 @@ void main(){
   vec3 eyeDirection = normalize(cameraPosition - v);
   float ambient = 0.3;
   float power = orenNayarDiffuse(lightDirection, eyeDirection, getNormal(), 0.3, 0.7);
-  vec3 color1 = (color * (power + ambient));
+  vec3 color1 = (color * ((power + ambient))) * 1.5;
   vec3 final = mix(color, color1, emission);
   gl_FragData[0] = vec4(final, alpha.a);
 }
