@@ -20,8 +20,8 @@ uniform sampler2D gdepthtex;
 
 #include "/lib/orenNayarDiffuse.glsl"
 
-vec3 getNormal(){
-  return (texture2D(colortex1 , texcoord.st) * 2.0 - 1.0).rgb;
+vec4 getNormal(){
+  return (texture2D(colortex1 , texcoord.st) * 2.0 - 1.0);
 }
 float getEmission(){
   return texture2D(gdepthtex, texcoord.st).r;
@@ -35,12 +35,13 @@ vec3 colorCode(float r, float g, float b){
 void main(){
   float specularStrength = 0.5;
   vec4 alpha = texture2D(colortex0, texcoord.st).rgba;
+  vec4 norm = normalize(getNormal());
   vec4 col = texture2D(colortex0, texcoord.st);
   vec3 color = col.rgb;
   #ifdef PBRTextures
     vec4 specular = texture2D(colortex1, texcoord.st);
-    float roughness = pow2(max(1.0-specular.r, 0.04));
-    float specularity = pow2(clamp(specular.g, 0.0, 229.0/255.0));
+    float roughness = pow(max(1.0-specular.r, 0.04), 2.0);
+    float specularity = pow(clamp(specular.g, 0.0, 229.0/255.0), 2.0);
   #else
     float roughness = 0;
     float specularity = 0.7;
@@ -49,13 +50,13 @@ void main(){
   vec3 lightDirection = normalize(shadowLightPosition - v);
   vec3 eyeDirection = normalize(cameraPosition - v);
   vec3 viewDir = normalize(cameraPosition - v);
-  vec3 reflectDir = reflect(-lightDirection, normalize(getNormal()));
+  vec3 reflectDir = reflect(-lightDirection, norm.rgb);
 
   //float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
   //vec3 specu = specularity * spec * vec3(1.0);
   float ambient = 0.3;
-  float power = orenNayarDiffuse(lightDirection, eyeDirection, normalize(getNormal()), roughness, 0.7);
+  float power = orenNayarDiffuse(lightDirection, eyeDirection, norm.rgb, roughness, 0.7);
   vec3 color1 = (color * ((power + ambient))) * 1.5;
   vec3 final = mix(color, color1, emission);
-  gl_FragData[0] = vec4(final, col.a);
+  gl_FragData[0] = vec4(color1, col.a);
 }
