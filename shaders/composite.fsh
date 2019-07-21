@@ -38,8 +38,8 @@ void main(){
   vec3 color = texture2D(colortex0, texcoord.st).rgb;
   #ifdef PBRTextures
     vec4 specular = texture2D(colortex1, texcoord.st);
-    float roughness = max(1.0-specular.r, 0.04);
-    float specularity = specular.g;
+    float roughness = pow2(max(1.0-specular.r, 0.04));
+    float specularity = pow2(clamp(specular.g, 0.0, 229.0/255.0));
   #else
     float roughness = 0;
     float specularity = 0.7;
@@ -49,8 +49,9 @@ void main(){
   vec3 eyeDirection = normalize(cameraPosition - v);
   vec3 viewDir = normalize(cameraPosition - v);
   vec3 reflectDir = reflect(-lightDirection, normalize(getNormal()));
-  float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
-  //vec3 specular = specularStrength * spec * vec3(1.0);
+
+  //float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
+  //vec3 specu = specularity * spec * vec3(1.0);
   float ambient = 0.3;
   float power = orenNayarDiffuse(lightDirection, eyeDirection, normalize(getNormal()), roughness, 0.7);
   vec3 color1 = (color * ((power + ambient))) * 1.5;
