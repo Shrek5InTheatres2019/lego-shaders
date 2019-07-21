@@ -32,7 +32,8 @@ float rand(vec2 co) {
 #include "/lib/DepthOfField.glsl"
 
 void main(){
-  vec3 color = texture2D(colortex0, texcoord.st).rgb;
+  vec4 col = texture2D(colortex0, texcoord.st);
+  vec3 color = col.rgb;
   #ifdef VintageFilter
     vec3 sepia = vec3(112.0 / 255.0, 66.0 / 255.0, 20.0 / 255.0);
     vec3 noiseLevel = vec3(0.07, 0.07, 0.07);
@@ -45,5 +46,5 @@ void main(){
   #ifdef DOF
     color = depthOfField(color);
   #endif
-  gl_FragData[0] = vec4(color, 1.0);
+  gl_FragData[0] = vec4(color, col.a);
 }

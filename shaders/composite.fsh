@@ -35,7 +35,8 @@ vec3 colorCode(float r, float g, float b){
 void main(){
   float specularStrength = 0.5;
   vec4 alpha = texture2D(colortex0, texcoord.st).rgba;
-  vec3 color = texture2D(colortex0, texcoord.st).rgb;
+  vec4 col = texture2D(colortex0, texcoord.st);
+  vec3 color = col.rgb;
   #ifdef PBRTextures
     vec4 specular = texture2D(colortex1, texcoord.st);
     float roughness = pow2(max(1.0-specular.r, 0.04));
@@ -56,5 +57,5 @@ void main(){
   float power = orenNayarDiffuse(lightDirection, eyeDirection, normalize(getNormal()), roughness, 0.7);
   vec3 color1 = (color * ((power + ambient))) * 1.5;
   vec3 final = mix(color, color1, emission);
-  gl_FragData[0] = vec4(final, alpha.a);
+  gl_FragData[0] = vec4(final, col.a);
 }
