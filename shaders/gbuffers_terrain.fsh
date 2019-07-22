@@ -12,7 +12,7 @@ uniform sampler2D specular;
 uniform vec3 cameraPosition;
 /* DRAWBUFFERS:012 */
 
-float height_scale = 20;
+float height_scale = 300000000;
 
 mat3 tbnMatrix = mat3(tangent.x, binormal.x, normal .x,
                 tangent.y, binormal.y, normal .y,
@@ -35,7 +35,7 @@ vec2 ParallaxMapping(vec2 texCoords, vec3 viewDir)
 {
   // number of depth layers
   const float minLayers = 8.0;
-  const float maxLayers = 64.0;
+  const float maxLayers = 128.0;
   float numLayers = mix(maxLayers, minLayers, abs(dot(vec3(0.0, 0.0, 1.0), viewDir)));
   // calculate the size of each layer
   float layerDepth = 1.0 / numLayers;
