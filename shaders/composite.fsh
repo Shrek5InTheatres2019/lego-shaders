@@ -16,7 +16,7 @@ uniform vec3 shadowLightPosition;
 uniform sampler2D colortex0;
 uniform sampler2D colortex1;
 uniform sampler2D colortex2;
-uniform sampler2D gdepthtex;
+uniform sampler2D depthtex0;
 
 #include "/lib/orenNayarDiffuse.glsl"
 
@@ -24,7 +24,7 @@ vec4 getNormal(){
   return (texture2D(colortex1 , texcoord.st) * 2.0 - 1.0);
 }
 float getEmission(){
-  return texture2D(gdepthtex, texcoord.st).r;
+  return texture2D(depthtex0, texcoord.st).r;
 }
 vec3 colorCode(float r, float g, float b){
   vec3 back = vec3(r,g,b);
@@ -57,6 +57,6 @@ void main(){
   float ambient = 0.3;
   float power = orenNayarDiffuse(lightDirection, eyeDirection, norm.rgb, roughness, 0.7);
   vec3 color1 = (color * ((power + ambient))) * 1.5;
-  vec3 final = mix(color, color1, emission);
+  vec3 final = mix(color1, color, emission);
   gl_FragData[0] = vec4(color1, col.a);
 }
