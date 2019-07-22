@@ -12,7 +12,7 @@ uniform sampler2D specular;
 uniform vec3 cameraPosition;
 /* DRAWBUFFERS:012 */
 
-float height_scale = 0.5;
+float height_scale = 20;
 
 mat3 tbnMatrix = mat3(tangent.x, binormal.x, normal .x,
                 tangent.y, binormal.y, normal .y,
@@ -35,8 +35,8 @@ vec2 ParallaxMapping(vec2 texCoords, vec3 viewDir)
 {
   // number of depth layers
   const float minLayers = 8.0;
-const float maxLayers = 32.0;
-float numLayers = mix(maxLayers, minLayers, abs(dot(vec3(0.0, 0.0, 1.0), viewDir)));
+  const float maxLayers = 64.0;
+  float numLayers = mix(maxLayers, minLayers, abs(dot(vec3(0.0, 0.0, 1.0), viewDir)));
   // calculate the size of each layer
   float layerDepth = 1.0 / numLayers;
   // depth of current layer
@@ -60,15 +60,15 @@ float numLayers = mix(maxLayers, minLayers, abs(dot(vec3(0.0, 0.0, 1.0), viewDir
 
   vec2 prevTexCoords = currentTexCoords + deltaTexCoords;
 
-// get depth after and before collision for linear interpolation
-float afterDepth  = currentDepthMapValue - currentLayerDepth;
-float beforeDepth = getLabNormal(prevTexCoords).a - currentLayerDepth + layerDepth;
+  // get depth after and before collision for linear interpolation
+  float afterDepth  = currentDepthMapValue - currentLayerDepth;
+  float beforeDepth = getLabNormal(prevTexCoords).a - currentLayerDepth + layerDepth;
 
-// interpolation of texture coordinates
-float weight = afterDepth / (afterDepth - beforeDepth);
-vec2 finalTexCoords = prevTexCoords * weight + currentTexCoords * (1.0 - weight);
+  // interpolation of texture coordinates
+  float weight = afterDepth / (afterDepth - beforeDepth);
+  vec2 finalTexCoords = prevTexCoords * weight + currentTexCoords * (1.0 - weight);
 
-return finalTexCoords;
+  return finalTexCoords;
 }
 void main(){
   float ambientStrength = 0.1;
@@ -76,12 +76,12 @@ void main(){
   vec4 color1 = vec4(blockColor.rgb, 1.0);
   vec3 viewDir = normalize(v - cameraPosition);
   vec2 texturecoords = ParallaxMapping(texcoord.st, viewDir);
-  if(texturecoords.x > 1.0 || texturecoords.y > 1.0 || texturecoords.x < 0.0 || texturecoords.y < 0.0)
-    discard;
-  vec4 color = texture2D(texture, texturecoords);
+  //if(texturecoords.x > 1.0 || texturecoords.y > 1.0 || texturecoords.x < 0.0 || texturecoords.y < 0.0)
+    //discard;
+  vec4 color = texture2D(texture, texcoord.st);
   vec4 spec = texture2D(specular, texturecoords);
   vec4 final = (color * color1);
-  gl_FragData[0] = vec4(final.r, final.g, final.b, color.a);
+  gl_FragData[0] = color;
   gl_FragData[1] = norm * 0.5 + 0.5;
   gl_FragData[2] = spec;
 }
