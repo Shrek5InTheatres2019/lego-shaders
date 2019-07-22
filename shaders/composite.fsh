@@ -13,6 +13,7 @@ varying vec3 v;
 uniform vec3 cameraPosition;
 uniform vec3 shadowLightPosition;
 
+float height_scale = 5;
 uniform sampler2D colortex0;
 uniform sampler2D colortex1;
 uniform sampler2D colortex2;
@@ -23,33 +24,40 @@ uniform sampler2D depthtex0;
 vec4 getNormal(){
   return (texture2D(colortex1 , texcoord.st) * 2.0 - 1.0);
 }
-float getEmission(){
-  return texture2D(depthtex0, texcoord.st).r;
+float getEmission(vec2 texcoords){
+  return texture2D(depthtex0, texcoords).r;
 }
 vec3 colorCode(float r, float g, float b){
   vec3 back = vec3(r,g,b);
   back = back / 255;
   return back;
 }
+vec2 ParallaxOcclusionMapping(vec2 texcoords, vec3 viewDir, float height){
+  vec2 p = viewDir.xy / viewDir.z * (height * height_scale);
+  return texcoords - p;
+}
 /* DRAWBUFFERS:0 */
 void main(){
-  float specularStrength = 0.5;
-  vec4 alpha = texture2D(colortex0, texcoord.st).rgba;
-  vec4 norm = normalize(getNormal());
-  vec4 col = texture2D(colortex0, texcoord.st);
-  vec3 color = col.rgb;
+
   #ifdef PBRTextures
     vec4 specular = texture2D(colortex1, texcoord.st);
     float roughness = pow(max(1.0-specular.r, 0.04), 2.0);
     float specularity = pow(clamp(specular.g, 0.0, 229.0/255.0), 2.0);
   #else
+    vec4 specular = vec4(1.0);
     float roughness = 0;
     float specularity = 0.7;
   #endif
-  float emission = getEmission();
+  vec4 norm = normalize(getNormal());
+  vec3 viewDir = normalize(cameraPosition - v);
+  vec2 texturecoords = ParallaxOcclusionMapping(texcoord.st, viewDir, norm.a);
+  float specularStrength = 0.5;
+  vec4 alpha = texture2D(colortex0, texturecoords).rgba;
+  vec4 col = texture2D(colortex0, texturecoords);
+  vec3 color = col.rgb;
+  float emission = getEmission(texturecoords);
   vec3 lightDirection = normalize(shadowLightPosition - v);
   vec3 eyeDirection = normalize(cameraPosition - v);
-  vec3 viewDir = normalize(cameraPosition - v);
   vec3 reflectDir = reflect(-lightDirection, norm.rgb);
 
   //float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
