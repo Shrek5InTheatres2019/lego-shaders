@@ -6,6 +6,7 @@ varying vec4 blockColor;
 varying vec3 normal;
 varying vec3 tangent;
 varying vec3 binormal;
+varying vec3 v;
 attribute vec4 at_tangent;
 
 
@@ -18,4 +19,6 @@ void main(){
   binormal     = normalize(gl_NormalMatrix * cross(at_tangent.xyz, gl_Normal.xyz) * at_tangent.w);
   vec4 position = gl_Vertex;
   gl_Position = gl_ProjectionMatrix * (gl_ModelViewMatrix * position);
+
+     v = vec3(gl_ModelViewMatrix * gl_Vertex);
 }

@@ -32,32 +32,7 @@ vec3 colorCode(float r, float g, float b){
   back = back / 255;
   return back;
 }
-vec2 ParallaxOcclusionMapping(vec2 texcoords, vec3 viewDir, float height){
-  // number of depth layers
-   const float numLayers = 10;
-   // calculate the size of each layer
-   float layerDepth = 1.0 / numLayers;
-   // depth of current layer
-   float currentLayerDepth = 0.0;
-   // the amount to shift the texture coordinates per layer (from vector P)
-   vec2 P = viewDir.xy * height_scale;
-   vec2 deltaTexCoords = P / numLayers;
-   // get initial values
-  vec2  currentTexCoords     = texcoords;
-  float currentDepthMapValue = getNormal(texcoords).a;
 
-  while(currentLayerDepth < currentDepthMapValue)
-  {
-      // shift texture coordinates along direction of P
-      currentTexCoords -= deltaTexCoords;
-      // get depthmap value at current texture coordinates
-      currentDepthMapValue = getNormal(currentTexCoords).a;
-      // get depth of next layer
-      currentLayerDepth += layerDepth;
-  }
-
-  return currentTexCoords;
-}
 /* DRAWBUFFERS:0 */
 void main(){
 
@@ -72,7 +47,7 @@ void main(){
   #endif
   vec4 norm = normalize(getNormal(texcoord.st));
   vec3 viewDir = normalize(cameraPosition - v);
-  vec2 texturecoords = ParallaxOcclusionMapping(texcoord.st, viewDir, norm.a);
+  vec2 texturecoords = texcoord.st;
   float specularStrength = 0.5;
   vec4 alpha = texture2D(colortex0, texturecoords).rgba;
   vec4 col = texture2D(colortex0, texturecoords);
