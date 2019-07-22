@@ -60,7 +60,7 @@ void main(){
   //float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
   //vec3 specu = specularity * spec * vec3(1.0);
   float ambient = 0.3;
-  float power = orenNayarDiffuse(lightDirection, eyeDirection, norm.rgb, roughness, 0.7);
+  float power = orenNayarDiffuse(lightDirection, eyeDirection, norm.rgb, roughness, 1);
   vec3 color1 = (color * ((power + ambient))) * 1.5;
   vec3 final = mix(color1, color, emission);
   gl_FragData[0] = vec4(color1, col.a);
