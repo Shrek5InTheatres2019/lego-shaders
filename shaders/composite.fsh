@@ -13,7 +13,7 @@ varying vec3 v;
 uniform vec3 cameraPosition;
 uniform vec3 shadowLightPosition;
 
-float height_scale = 5;
+float height_scale = 0.5;
 uniform sampler2D colortex0;
 uniform sampler2D colortex1;
 uniform sampler2D colortex2;
@@ -21,8 +21,8 @@ uniform sampler2D depthtex0;
 
 #include "/lib/orenNayarDiffuse.glsl"
 
-vec4 getNormal(){
-  return (texture2D(colortex1 , texcoord.st) * 2.0 - 1.0);
+vec4 getNormal(vec2 texcoords){
+  return (texture2D(colortex1 , texcoords) * 2.0 - 1.0);
 }
 float getEmission(vec2 texcoords){
   return texture2D(depthtex0, texcoords).r;
@@ -33,8 +33,30 @@ vec3 colorCode(float r, float g, float b){
   return back;
 }
 vec2 ParallaxOcclusionMapping(vec2 texcoords, vec3 viewDir, float height){
-  vec2 p = viewDir.xy / viewDir.z * (height * height_scale);
-  return texcoords - p;
+  // number of depth layers
+   const float numLayers = 10;
+   // calculate the size of each layer
+   float layerDepth = 1.0 / numLayers;
+   // depth of current layer
+   float currentLayerDepth = 0.0;
+   // the amount to shift the texture coordinates per layer (from vector P)
+   vec2 P = viewDir.xy * height_scale;
+   vec2 deltaTexCoords = P / numLayers;
+   // get initial values
+  vec2  currentTexCoords     = texcoords;
+  float currentDepthMapValue = getNormal(texcoords).a;
+
+  while(currentLayerDepth < currentDepthMapValue)
+  {
+      // shift texture coordinates along direction of P
+      currentTexCoords -= deltaTexCoords;
+      // get depthmap value at current texture coordinates
+      currentDepthMapValue = getNormal(currentTexCoords).a;
+      // get depth of next layer
+      currentLayerDepth += layerDepth;
+  }
+
+  return currentTexCoords;
 }
 /* DRAWBUFFERS:0 */
 void main(){
@@ -48,7 +70,7 @@ void main(){
     float roughness = 0;
     float specularity = 0.7;
   #endif
-  vec4 norm = normalize(getNormal());
+  vec4 norm = normalize(getNormal(texcoord.st));
   vec3 viewDir = normalize(cameraPosition - v);
   vec2 texturecoords = ParallaxOcclusionMapping(texcoord.st, viewDir, norm.a);
   float specularStrength = 0.5;
